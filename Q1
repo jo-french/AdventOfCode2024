@@ -1,0 +1,27 @@
+import numpy as np
+import pandas as pd
+
+def sort_col(df, col_name):
+    return sorted(list(df[col_name].values))
+
+df = pd.read_csv("input.txt", sep="   ", header=None, names=["List1", "List2"])
+
+# Part 1 
+
+df["Sorted1"] = sort_col(df, "List1")
+df["Sorted2"] = sort_col(df, "List2")
+df["Diffs"] = (df.loc[:,"Sorted1"] - df.loc[:,"Sorted2"]).abs()
+
+df["Diffs"].sum()
+
+# 1722302
+
+# Part 2
+
+counts_df = pd.DataFrame(df["Sorted2"].value_counts().reset_index())
+counts_df = counts_df[counts_df["index"].isin(df["Sorted1"])]
+counts_df["Value"] = counts_df.loc[:,"index"] * counts_df.loc[:,"Sorted2"]
+
+counts_df["Value"].sum()
+
+# 20373490
