@@ -1,34 +1,6 @@
 import numpy as np
 import pandas as pd
 
-with open('input.txt') as f:
-    lines = f.read()
-    
-lines = lines.split("\n")
-lines = lines[:-1]
-
-lines = [[int(x) for x in l.split(" ")] for l in lines]
-
-# Part 1
-
-N = len(lines)
-diffs = [[line[i+1] - line[i] for i in range(len(line)-1)] for line in lines]
-absdiffs = [[abs(x) for x in diffline] for diffline in diffs]
-minabsdiffs = [min(absdiffline) for absdiffline in absdiffs]
-maxabsdiffs = [max(absdiffline) for absdiffline in absdiffs]
-sums = [abs(sum(diffline)) for diffline in diffs]
-abssums = [sum(absdiffline) for absdiffline in absdiffs]
-
-monotonic = [sums[i] == abssums[i] for i in range(N)]
-diffsinrange = [(minabsdiffs[i] >= 1) and (maxabsdiffs[i] <= 3) for i in range(N)]
-issafe = [(monotonic[i] and diffsinrange[i]) for i in range(N)]
-
-sum(issafe)
-
-# 421
-
-# Part 2
-
 def is_safe(report):
     reportdiffs = [report[i+1] - report[i] for i in range(len(report)-1)]
     absvals = [abs(x) for x in reportdiffs]
@@ -47,6 +19,24 @@ def safe_amended(report):
         if is_safe(newlist):
             return True
     return False
+
+with open('input.txt') as f:
+    lines = f.read()
+    
+lines = lines.split("\n")
+lines = lines[:-1]
+
+lines = [[int(x) for x in l.split(" ")] for l in lines]
+
+# Part 1
+
+issafe = [is_safe(l) for l in lines]
+
+sum(issafe)
+
+# 421
+
+# Part 2
 
 dampener_safe = [safe_amended(r) for r in lines]
 sum(dampener_safe)
