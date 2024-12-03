@@ -1,0 +1,45 @@
+import numpy as np
+import pandas as pd
+
+import re
+
+def numbers(mul):
+    digits = mul.replace("mul(","")
+    digits = digits.replace(")", "")
+    return [int(n) for n in digits.split(",")]
+    
+
+with open('input.txt') as f:
+    lines = f.read()
+    
+# Part 1
+
+valid_muls = re.findall("mul\(\d+\,\d+\)", lines)
+number_pairs = [numbers(m) for m in valid_muls]
+sum([num_pair[0] * num_pair[1] for num_pair in number_pairs])
+
+# 179834255
+
+# Part 2
+
+muls = re.findall("(mul\(\d+\,\d+\)|do\(\)|don\'t\(\))", lines)
+enabled_muls = []
+do = True
+for mul in muls:
+    if mul[:3] == "mul":
+        if do == True:
+            enabled_muls.append(mul)
+        continue
+    if mul[:3] == "do(":
+        do = True
+        continue
+    if mul[:3] == "don":
+        do = False
+        continue
+    print(f"Unknown value {mul}")
+    break
+
+enabled_mul_pairs = [numbers(m) for m in enabled_muls]
+sum([num_pair[0] * num_pair[1] for num_pair in enabled_mul_pairs])
+
+# 80570939
