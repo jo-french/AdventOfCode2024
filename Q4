@@ -1,0 +1,71 @@
+import numpy as np
+import pandas as pd
+
+import re
+
+with open('input.txt') as f:
+    lines = f.read()
+
+lines = lines.split("\n")
+lines = lines[:-1]
+
+# Part 1
+
+# Create lists of the strings in each direction (L,R,U,D,diagonals)
+n = len(lines)
+f_lines = lines
+b_lines = [list(reversed(l)) for l in f_lines]
+d_lines = [[l[i] for l in f_lines] for i in range(n)]
+u_lines = [list(reversed(l)) for l in d_lines]
+d1_lines = [[lines[i-j][j] for j in range(i + 1)] for i in range(n)]
+lower_diag1 = [[lines[i][j-i] for i in range(j- (n-1), n)] for j in range(n, 2*n-2 + 1)]
+lower_diag1_r = [list(reversed(l)) for l in lower_diag1]
+d1_lines.extend(lower_diag1_r)
+b_d1_lines = [list(reversed(l)) for l in d1_lines]
+d2_lines = [[lines[i][i+k] for i in range(0, n-1-k + 1)] for k in range(n)]
+lower_diag2 = [[lines[j+k][j] for j in range(0, n-1-k+1)] for k in range(1, n)]
+d2_lines.extend(lower_diag2)
+b_d2_lines = [list(reversed(l)) for l in d2_lines]
+
+# Most of the lists of strings are actually lists of lists
+# Join the lists back into strings
+b_lines = ["".join(l) for l in b_lines]
+d_lines = ["".join(l) for l in d_lines]
+u_lines = ["".join(l) for l in u_lines]
+d1_lines = ["".join(l) for l in d1_lines]
+b_d1_lines = ["".join(l) for l in b_d1_lines]
+d2_lines = ["".join(l) for l in d2_lines]
+b_d2_lines = ["".join(l) for l in b_d2_lines]
+
+
+
+directions = [f_lines, b_lines, d_lines, u_lines, d1_lines, b_d1_lines, d2_lines, b_d2_lines]
+
+    
+all_words = [re.findall("XMAS", l) for linelist in directions for l in linelist]
+sum(len(l) for l in all_words)
+
+# 2613
+
+# Part 2
+
+# Map letters to unique primes so that we can use the products to determine if the word is "MAS"
+# in either direction
+# Then iterate over the subgrid (minus the outer square) looking for As
+prime_map_df = pd.read_csv("prime_map.csv", header=None)
+prime_map = dict(prime_map_df.values)
+
+MASprod = np.prod([prime_map[l]	for l in "MAS"])
+
+count = 0
+for i in range(1, n-1):
+    for j in range(1, n-1):
+        if lines[i][j] == "A":
+            xshape = [[lines[i-1][j-1], lines[i][j], lines[i+1][j+1]],
+                      [lines[i-1][j+1], lines[i][j], lines[i+1][j-1]]]
+            prods = [np.prod([prime_map[l] for l in word]) for word in xshape]
+            if (prods[0] == MASprod) and (prods[1] == MASprod):
+                count+=1
+                
+count
+# 1905
