@@ -37,10 +37,7 @@ b_d1_lines = ["".join(l) for l in b_d1_lines]
 d2_lines = ["".join(l) for l in d2_lines]
 b_d2_lines = ["".join(l) for l in b_d2_lines]
 
-
-
 directions = [f_lines, b_lines, d_lines, u_lines, d1_lines, b_d1_lines, d2_lines, b_d2_lines]
-
     
 all_words = [re.findall("XMAS", l) for linelist in directions for l in linelist]
 sum(len(l) for l in all_words)
