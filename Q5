@@ -1,0 +1,51 @@
+import numpy as np
+import pandas as pd
+
+import re
+
+# I believe Python's sort function may work with comparison rules, but
+# wrote a sort function out of interest
+def sort_update(update, rule_list):
+    ret = []
+    numbers_remaining = [num for num in update]
+    rules_remaining = [r for r in rule_list]
+    while len(numbers_remaining) > 0:
+        left_nums = [num for num in numbers_remaining if num not in set(x[1] for x in rules_remaining)]
+        ret.extend(left_nums)
+        numbers_remaining = [num for num in numbers_remaining if num not in left_nums]
+        rules_remaining = [rule for rule in rules_remaining if rule[0] not in left_nums]
+    return ret
+
+
+with open('input.txt') as f:
+    lines = f.read()
+    
+parts = lines.split("\n\n")
+rules = [[int(y) for y in rule] for rule in [x.split("|") for x in parts[0].split("\n")]]
+updates = [[int(x) for x in update] for update in [u.split(",") for u in parts[1].split("\n")[:-1]]]
+
+# Part 1
+
+n = len(updates)
+idx_maps = [{ update[i]: i for i in range(len(update))} for update in updates]
+relevant_rules = [[rule for rule in rules if set(rule).issubset(set(update))] for update in updates]
+rules_ignored = [[rule for rule in relevant_rules[i] if idx_maps[i][rule[1]] < idx_maps[i][rule[0]]] for i in range(n)]
+valid_updates = [updates[i] for i in range(n) if len(rules_ignored[i]) == 0]
+
+[len(update) for update in updates if len(update) % 2 == 0]
+# All updates have odd length so a valid middle element
+
+# Base 0--subtract 1 from calculated middle value
+middles = [update[int((len(update) + 1)/2) - 1] for update in valid_updates]
+sum(middles)
+# 5747
+
+# Part 2
+
+lists_to_sort = [updates[i] for i in range(n) if len(rules_ignored[i]) > 0]
+sorting_rules = [relevant_rules[i] for i in range(n) if len(rules_ignored[i]) > 0]
+
+sorted_lists = [sort_update(lists_to_sort[i], sorting_rules[i]) for i in range(len(lists_to_sort))]
+sorted_middles = [update[int((len(update) + 1)/2) - 1] for update in sorted_lists]
+sum(sorted_middles)
+# 5502
