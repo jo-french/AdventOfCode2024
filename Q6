@@ -1,0 +1,113 @@
+import numpy as np
+import pandas as pd
+
+def get_next_pos(pos, current_dir, grid):
+    N = grid.shape[0]
+    if current_dir == 0: # Up
+        next_obstacle = [i for i in range(pos[0]) if grid[i, pos[1]] == 1]
+        if len(next_obstacle) > 0:
+            new_i = max(next_obstacle) + 1
+            return [new_i, pos[1]]
+        else:
+            return [0, pos[1]]
+    elif current_dir == 1: # Right
+        next_obstacle = [j for j in range(pos[1]+1,N) if grid[pos[0], j] == 1]
+        if len(next_obstacle) > 0:
+            new_j = min(next_obstacle) - 1
+            return [pos[0], new_j]
+        else:
+            return [pos[0], N-1]
+    elif current_dir == 2: # Down
+        next_obstacle = [i for i in range(pos[0]+1,N) if grid[i][pos[1]] == 1]
+        if len(next_obstacle) > 0:
+            new_i = min(next_obstacle) - 1
+            return [new_i, pos[1]]
+        else:
+            return [N-1, pos[1]]
+    elif current_dir == 3: # Left
+        next_obstacle = [j for j in range(pos[1]) if grid[pos[0], j] == 1]
+        if len(next_obstacle) > 0:
+            new_j = max(next_obstacle) + 1
+            return [pos[0], new_j]
+        else:
+            return [pos[0], 0]
+        
+def get_all_positions(points):
+    all_points = []
+    n_points = len(points)
+    for x in range(n_points-1):
+        # One pair of consecutive values will be the same
+        first_vals = sorted([points[x][0], points[x+1][0]])
+        second_vals = sorted([points[x][1], points[x+1][1]])
+        first_list = list(range(first_vals[0], first_vals[1] + 1))
+        second_list = list(range(second_vals[0], second_vals[1] + 1))
+        num_points_in_range = max(len(first_list), len(second_list))
+        if len(first_list) < num_points_in_range:
+            first_list = first_list*num_points_in_range
+        else:
+            second_list = second_list*num_points_in_range
+        points_to_add = list(zip(first_list, second_list))
+        points_to_add.remove(tuple(points[x+1]))
+        all_points.extend(points_to_add)
+    all_points.append(tuple(points[-1]))
+    return all_points
+
+def is_loop(pos, this_grid):
+    direction = 0
+    positions = [pos]
+    while pos[0] > 0 and pos[0] < n-1 and pos[1] > 0 and pos[1] <n-1: # Stop when we hit a boundary
+        pos = get_next_pos(pos, direction, this_grid)
+        direction = (direction + 1) % 4
+        if pos in positions and pos != positions[-1]:
+            positions.append(pos)
+            return 1
+        positions.append(pos)
+    return 0
+ 
+
+with open('input.txt') as f:
+    lines = f.read()
+    
+set(lines)
+lines = lines.replace("#", "1").replace(".", "0").replace("^", "2")
+lines = lines.split("\n")[:-1]
+lines = [[int(x) for x in l] for l in lines]
+
+# Part 1
+
+n = len(lines)
+pos = [[i, j] for i in range(n) for j in range(n) if lines[i][j] == 2][0]
+start_pos = pos
+direction = 0
+# Direction = [0, 1, 2, 3] mod 4. Turning increases the direction by 1.
+
+# Start position [93, 71]
+lines[pos[0]][pos[1]] = 0
+
+grid = np.array(lines)
+
+positions = [pos]
+while pos[0] > 0 and pos[0] < n-1 and pos[1] > 0 and pos[1] <n-1: # Stop when we hit a boundary
+    pos = get_next_pos(pos, direction, grid)
+    direction = (direction + 1) % 4
+    positions.append(pos)
+
+all_positions = get_all_positions(positions)
+distinct_positions = set(all_positions)
+len(distinct_positions)
+# 4433
+
+# Part 2
+
+# A cycle will occur if the guard reaches the same position (point that he turns) a second time
+loops_found = 0
+for i in range(n):
+    for j in range(n):
+        if grid[i,j] == 0 and not (i == start_pos[0] and j == start_pos[1]):
+            new_grid = grid.copy()
+            new_grid[i, j] = 1
+            pos = start_pos
+            loops_found += is_loop(pos, new_grid)
+
+loops_found      
+# 1516
