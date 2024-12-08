@@ -1,0 +1,70 @@
+import numpy as np
+import pandas as pd
+import math
+
+with open('input.txt') as f:
+    lines = f.read()
+
+lines = lines.split("\n")[:-1]
+n = len(lines)
+
+# Part 1
+
+# Merge a dataframe with itself to create a df of all possible pairs of antennas
+
+df = pd.DataFrame()
+for i in range(n):
+    for j in range(n):
+        char = lines[i][j]
+        if char != ".":
+            row = pd.DataFrame({ "Char": [char], "Row": [i], "Column": [j] })
+            df = pd.concat([df, row])
+
+pairs_df = df.merge(df, on="Char", how="inner", suffixes = ["_1", "_2"] )
+pairs_df = pairs_df[(pairs_df["Row_1"] != pairs_df["Row_2"]) | (pairs_df["Column_1"] != pairs_df["Column_2"])]
+pairs_df["Row_Diff"] = pairs_df["Row_1"] - pairs_df["Row_2"]
+pairs_df["Column_Diff"] = pairs_df["Column_1"] - pairs_df["Column_2"]
+pairs_df["A_Row_1"] = pairs_df["Row_1"] + pairs_df["Row_Diff"]
+pairs_df["A_Column_1"] = pairs_df["Column_1"] + pairs_df["Column_Diff"]
+pairs_df["A_Row_2"] = pairs_df["Row_2"] - pairs_df["Row_Diff"]
+pairs_df["A_Column_2"] = pairs_df["Column_2"] - pairs_df["Column_Diff"]
+
+all_points = list(zip(pairs_df.loc[:,"A_Row_1"], pairs_df.loc[:,"A_Column_1"]))
+all_points.extend(list(zip(pairs_df.loc[:,"A_Row_2"], pairs_df.loc[:,"A_Column_2"])))
+all_points = [ point for point in all_points if point[0] in range(n) and point[1] in range(n)]
+distinct_points = list(set(all_points))
+len(distinct_points)
+# 359
+
+# Part 2
+
+pairs1_df = pairs_df.drop(["A_Row_1", "A_Column_1", "A_Row_2", "A_Column_2"], axis=1)
+pairs1_df["hcf"] = pairs1_df.apply(lambda x: math.gcd(x.Row_Diff, x.Column_Diff), axis=1)
+set(pairs1_df["hcf"])
+# Just 1. No antinodes between the points
+all_points_new = []
+for i in pairs1_df.index:
+    r1 = pairs1_df.loc[i, "Row_1"]
+    c1 = pairs1_df.loc[i, "Column_1"]
+    r2 = pairs1_df.loc[i, "Row_2"]
+    c2 = pairs1_df.loc[i, "Column_2"]
+    rdiff = r1 - r2
+    cdiff = c1 - c2
+    r = r1
+    c = c1
+    this_points =[]
+    while r in range(n) and c in range(n):
+        this_points.append((r, c))
+        r = r+rdiff
+        c = c+cdiff
+    r = r2
+    c = c2
+    while r in range(n) and c in range(n):
+        this_points.append((r, c))
+        r = r-rdiff
+        c = c-cdiff
+    all_points_new.extend(this_points)
+    
+distinct_points_new = list(set(all_points_new))
+len(distinct_points_new)    
+# 1293
