@@ -1,0 +1,63 @@
+import numpy as np
+import pandas as pd
+
+def operator(operator_digit, a, b):
+    if operator_digit == 0:
+        return a + b
+    elif operator_digit == 1:
+        return a*b
+    elif operator_digit == 2:
+        return int(str(a) + str(b)) 
+
+def do_operations(target, curr_guess, val, has_concat):
+    equation_results = []
+    operations = [0, 1]
+    if has_concat:
+        operations.append(2)
+    for od in operations:
+        guess = operator(od, curr_guess, val)
+        if guess > target:
+            continue
+        else:
+            equation_results.append(guess)
+    return equation_results
+
+def check_equation(target, vals, has_concat):
+    results = [vals[0]]
+    for val in vals[1:]:
+        new_results = []
+        for result in results:
+            new_results.extend(do_operations(target, result, val, has_concat))
+        results = new_results
+    if target in results:
+        return True
+    else:
+        return False
+    
+
+with open('input.txt') as f:
+    lines = f.read()
+
+lines = lines.split("\n")[:-1]
+targets = [int(l.split(":")[0]) for l in lines]
+equation_vals = [[int(x) for x in l.split(":")[1].strip().split(" ")] for l in lines]
+
+# Part 1
+
+max(len(l) for l in equation_vals)
+# Max combinations = 2*11
+min(len(l) for l in equation_vals)
+# 3
+
+n  = len(lines)
+equation_is_true = [check_equation(targets[i], equation_vals[i], False) for i in range(n)]
+sum([targets[i] for i in range(n) if equation_is_true[i]])
+
+# 6231007345478
+
+# Part 2
+
+equation_is_true_with_concatenation = [check_equation(targets[i], equation_vals[i], True) for i in range(n)]
+sum([targets[i] for i in range(n) if equation_is_true_with_concatenation[i]])
+
+# 333027885676693
