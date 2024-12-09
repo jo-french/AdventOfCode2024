@@ -1,0 +1,116 @@
+import numpy as np
+import pandas as pd
+
+def create_filesystem(lines):
+    new_filesystem = []
+    count = 0
+    for i in range(len(lines)):
+        digit = int(lines[i])
+        if i % 2 == 1: # free space
+            new_filesystem.append([-1, digit])
+        else:
+            new_filesystem.append([count, digit])
+            count += 1
+    new_filesystem.append([-1,0])
+    return new_filesystem
+    
+
+def remove_block_and_combine_blanks(filesystem):
+    filesystem.pop(-2)
+    if filesystem[-2][0] == -1:
+        filesystem[-1][1] += filesystem[-2][1]
+        filesystem.pop(-2)
+
+def move_block(filesystem):
+    index_to_fill = min(i for i in range(len(filesystem)) if filesystem[i][0] == -1)
+    fill_count = filesystem[index_to_fill][1]
+    fill_block = filesystem[-2]
+    if fill_block[1] == 0:
+        remove_block_and_combine_blanks(filesystem)
+        return move_block(filesystem)
+    num_to_move = min(fill_count, fill_block[1])
+    filesystem[-2][1] -= num_to_move
+    filesystem[index_to_fill][1] -= num_to_move
+    if filesystem[index_to_fill][1] == 0:
+        filesystem[index_to_fill][0] = fill_block[0]
+        filesystem[index_to_fill][1] = num_to_move
+    else:
+        filesystem.insert(index_to_fill, [fill_block[0], num_to_move])
+    if filesystem[-2][1] == 0:
+        remove_block_and_combine_blanks(filesystem)
+        
+def calc_block_total(prev_sum, block):
+    if block[0] == -1:
+        return 0
+    else:
+        positions = list(range(prev_sum, prev_sum + block[1]))
+        return sum(positions) * block[0]
+    
+def move_file(filesystem, file, idx):
+    file_size = file[1]
+    for i in range(len(filesystem[:idx])):
+        block = filesystem[i]
+        if block[0] == -1:
+            if block[1] >= file_size:
+                count_0 = file_size
+                drop_next = False
+                if idx + 1 < len(filesystem):
+                    if filesystem[idx + 1][0] == -1:
+                        count_0 += filesystem[idx + 1][1]
+                        drop_next = True
+                if idx > 0:
+                    if filesystem[idx - 1][0] == -1:
+                        filesystem[idx - 1][1] += count_0
+                        if drop_next:
+                            filesystem.pop(idx + 1)
+                    else:
+                        filesystem.insert(idx, [-1, count_0])
+                        if drop_next:
+                            filesystem.pop(idx + 2)
+                else:
+                    filesystem.insert(idx, [-1, count_0])
+                    if drop_next:
+                        filesystem.pop(idx + 2)
+                filesystem.remove(file)
+                if block[1] > file_size:
+                    block[1] -= file_size
+                    filesystem.insert(i, file)
+                else:
+                    block[0] = file[0]
+                return
+    
+
+with open('input.txt') as f:
+    lines = f.read()
+
+lines = lines.split("\n")
+lines= lines[0]
+
+# Part 1
+filesystem = create_filesystem(lines)
+
+while filesystem[-3][0] == -1:
+    move_block(filesystem)
+
+memory_data = filesystem[:-1]
+cumulative_sums = [sum(x[1] for x in memory_data[:i+1]) for i in range(len(memory_data))]
+cumulative_sums = [0] + cumulative_sums
+sum(calc_block_total(cumulative_sums[i], memory_data[i]) for i in range(len(memory_data)))
+# 6241633730082
+
+# Part 2
+
+filesystem = create_filesystem(lines)[:-1]
+n = max(x[0] for x in filesystem)
+# The blocks to move are those with first value i, for i decreasing from n to 0
+# First remove empty blocks and combine free space
+[i for i in range(len(lines)) if lines[i] == '0' and i % 2 == 0]
+# There are no files of size 0
+for num in reversed(range(n+1)):
+    idx = [i for i in range(len(filesystem)) if filesystem[i][0] == num][0]
+    move_file(filesystem, filesystem[idx], idx)
+
+cumulative_sums1 = [sum(x[1] for x in filesystem[:i+1]) for i in range(len(filesystem))]
+cumulative_sums1 = [0] + cumulative_sums1
+sum(calc_block_total(cumulative_sums1[i], filesystem[i]) for i in range(len(filesystem)))
+# 6265268809555
